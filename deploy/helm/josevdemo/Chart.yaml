@@ -1,0 +1,6 @@
+apiVersion: v2
+name: josevdemo
+description: Josev Decision Lab, a browser demo comparing Josev with an OpenAI model
+type: application
+version: 0.1.0
+appVersion: "latest"

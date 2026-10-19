@@ -1,0 +1,111 @@
+# One replica is load-bearing: the app keeps a single-run lock and the live
+# result stream in process memory.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/mayflower/josevdemo
+  # Defaults to .Chart.AppVersion. The Argo CD Application pins a sha- tag
+  # published by .github/workflows/docker-publish.yml.
+  tag: ""
+  pullPolicy: ""
+
+global:
+  imagePullPolicy: IfNotPresent
+
+# Needed while ghcr.io/mayflower/josevdemo is a private package.
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: traefik
+  host: josevdemo.data.mayflower.zone
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-intern-dns
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  tls:
+    enabled: true
+    secretName: josevdemo-tls
+
+# Plain configuration, rendered as environment variables.
+config:
+  OLLAMA_BASE_URL: https://ollama.data.mayflower.zone
+  JOSEV_MODEL: josev-4b:latest
+  LLM_PROVIDER: openai
+  LLM_MODEL: gpt-6-luna
+  COST_CURRENCY: USD
+  # List prices per 1M tokens in the configured currency.
+  # gpt-6-luna: https://developers.openai.com/api/docs/pricing (Standard).
+  LLM_PRICE_INPUT_PER_MTOK: "0.10"
+  LLM_PRICE_OUTPUT_PER_MTOK: "0.50"
+  # Jev (Typesafe AI) list price; no published Mayflower Josev price.
+  JOSEV_PRICE_INPUT_PER_MTOK: "0.042"
+  JOSEV_PRICE_OUTPUT_PER_MTOK: "0"
+  JOSEV_PRICE_NOTE: Jev-Listenpreis von Typesafe AI, nicht Mayflower-Josev
+  MAX_CONCURRENCY: "4"
+
+# Secret with the OpenAI API key under the key LLM_API_KEY. Created by the
+# josevdemo-bootstrap Application (SOPS), not by this chart.
+secretName: josevdemo-secrets
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# GET /api/config answers without calling any model.
+startupProbe:
+  httpGet:
+    path: /api/config
+    port: http
+  periodSeconds: 2
+  timeoutSeconds: 3
+  failureThreshold: 30
+
+readinessProbe:
+  httpGet:
+    path: /api/config
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 6
+
+livenessProbe:
+  httpGet:
+    path: /api/config
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+podLabels: {}
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
