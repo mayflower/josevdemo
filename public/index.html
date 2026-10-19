@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f5f4ef">
+  <meta name="description" content="Fünf deutsche Decision-Model-Demos. Josev und ein LLM entscheiden über dieselben synthetischen Beispiele; die Weboberfläche zeigt tatsächlich gemessene Ergebnisse.">
+  <title>Josev · Decision Lab</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%237241ed'/%3E%3Cpath d='M11 20h18M20 11v18M14 14l12 12M14 26l12-12' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Demo-Bereich</a>
+  <div class="app-shell">
+    <main id="main">
+      <section id="scenarioPanel" aria-labelledby="scenarioSelect" class="scenario-panel">
+
+        <div class="run-toolbar">
+          <div class="toolbar-fields">
+            <label class="field scenario-field" for="scenarioSelect"><span>Demo</span><select id="scenarioSelect"><option value="triage">Support-Triage</option><option value="feed">Feed-Filter</option><option value="extract">Werte auswählen</option><option value="documents">Dokumenten-Stapel</option><option value="banking">77 Banking-Intents</option></select></label>
+            <label class="field count-field" for="runCount"><span>Umfang</span><select id="runCount"><option value="6">6 Beispiele</option><option value="12" selected>12 Beispiele</option><option value="24">24 Beispiele</option><option value="48">48 Beispiele</option></select></label>
+            <label class="field mode-field" for="runMode"><span>Modelle</span><select id="runMode"><option value="compare" selected>Josev + LLM</option><option value="josev">Nur Josev</option></select></label>
+            <label class="field schedule-field" for="runSchedule"><span>Messmodus</span><select id="runSchedule"><option value="parallel">Gleichzeitig</option><option value="sequential">Nacheinander</option></select></label>
+            <label class="check-field"><input id="warmup" type="checkbox" checked><span>Warm-up</span><span class="info-dot" title="Ein ungewerteter Aufruf pro Modell vor dem gemessenen Lauf. Modell-Ladezeit und Messergebnisse bleiben dadurch unterscheidbar." aria-label="Warm-up: Ein ungewerteter Aufruf pro Modell vor der Messung.">i</span></label>
+          </div>
+          <div class="run-actions"><button id="stopButton" type="button" class="button button-stop" hidden><span aria-hidden="true">■</span>Stoppen</button><button id="runButton" type="button" class="button button-primary" disabled><svg viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="m5 3 10 6-10 6z"/></svg><span>Vergleich starten</span></button></div>
+        </div>
+        <div class="run-subline"><p id="scheduleNote">Ein Modell nach dem anderen. Geeignet für zwei Modelle auf derselben GPU.</p><span id="runStatus" role="status" aria-live="polite">Daten werden geladen …</span></div>
+        <div id="notice" class="notice" role="status" hidden></div>
+        <div id="errorBanner" class="error-banner" role="alert" hidden></div>
+
+        <div id="comparisonStage" class="comparison-stage">
+          <section id="lane-josev" class="lane lane-josev" aria-labelledby="josevHeading"></section>
+          <section id="lane-llm" class="lane lane-llm" aria-labelledby="llmHeading"></section>
+        </div>
+
+        <div class="stage-footer"><p><span class="real-dot" aria-hidden="true"></span>Animationen folgen eingehenden Ergebnissen. Zeiten werden auf dem Server gemessen.</p><button id="exportButton" class="text-button" type="button" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4"/></svg>Letzter Lauf · JSON</button></div>
+      </section>
+
+      <section class="method-strip" aria-label="Zur Messung"><div><span class="method-number">01</span><p><strong>Gleiche Aufgabe</strong><span>Gleiche Eingaben, Ausgangsoptionen und Entscheidungsstrategie.</span></p></div><div><span class="method-number">02</span><p><strong>Sichtbare Qualität</strong><span>Referenztreffer auf den synthetischen Beispielen, separat zur Laufzeit.</span></p></div><div><span class="method-number">03</span><p><strong>Nachvollziehbare Kosten</strong><span>Schätzung auf Basis eurer Konfiguration. Ohne Kostensatz bleibt die Anzeige offen.</span></p></div></section>
+    </main>
+    <footer class="site-footer"><span>JOSEV / DECISION LAB</span><span>Fünf Aufgaben. Deutsche Beispiele. Eure Infrastruktur.</span><a href="https://huggingface.co/mayflowergmbh/Josev-2B-GGUF" target="_blank" rel="noopener noreferrer">Modell auf Hugging Face<span aria-hidden="true">↗</span></a></footer>
+  </div>
+
+  <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle"><div class="dialog-heading"><div><p class="eyebrow">INTERNE INFRASTRUKTUR</p><h2 id="settingsTitle">Verbindung & Messung</h2></div><button class="icon-button dialog-close" type="button" aria-label="Konfiguration schließen">×</button></div><div id="settingsContent"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
